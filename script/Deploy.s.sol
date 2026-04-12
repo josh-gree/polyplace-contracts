@@ -11,9 +11,10 @@ uint256 constant DEPLOY_COOLDOWN = 1 days;
 contract DeployScript is Script {
 
     function run() external returns (PlaceToken token, PlaceFaucet faucet) {
-        address deployer = msg.sender;
+        uint256 deployerKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerKey);
 
-        vm.startBroadcast();
+        vm.startBroadcast(deployerKey);
 
         token = new PlaceToken();
         faucet = new PlaceFaucet(address(token), DEPLOY_CLAIM_AMOUNT, DEPLOY_COOLDOWN, deployer);

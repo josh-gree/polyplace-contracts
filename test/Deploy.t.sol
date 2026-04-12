@@ -12,8 +12,11 @@ contract DeployTest is Test {
 
     address public deployer;
 
+    uint256 constant TEST_PRIVATE_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+
     function setUp() public {
-        deployer = address(this);
+        vm.setEnv("PRIVATE_KEY", vm.toString(TEST_PRIVATE_KEY));
+        deployer = vm.addr(TEST_PRIVATE_KEY);
         DeployScript script = new DeployScript();
         (token, faucet) = script.run();
     }
