@@ -16,3 +16,8 @@ docs/
 # IDE
 .vscode/
 .idea/
+
+# Python
+.venv/
+__pycache__/
+*.pyc

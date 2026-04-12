@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: polyplace-contracts
+Version: 0.1.0
+Summary: ABIs, bytecode and deployment helpers for Polyplace smart contracts
+Requires-Python: >=3.10
+Requires-Dist: web3>=6.0.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"

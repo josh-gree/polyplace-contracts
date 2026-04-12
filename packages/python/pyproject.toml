@@ -1,0 +1,20 @@
+[project]
+name = "polyplace-contracts"
+version = "0.1.0"
+description = "ABIs, bytecode and deployment helpers for Polyplace smart contracts"
+requires-python = ">=3.10"
+dependencies = [
+    "web3>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
