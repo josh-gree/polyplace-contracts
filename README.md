@@ -1,66 +1,33 @@
-## Foundry
+# polyplace-contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Smart contracts for Polyplace — a grid-based game on Polygon PoS.
 
-Foundry consists of:
+## Contracts
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### PlaceToken
+ERC20 token (symbol: PLACE) with a fixed supply of 1,000,000,000 tokens minted to the deployer. No minting after deploy.
 
-## Documentation
+### PlaceFaucet
+Distributes PLACE tokens to players. Each address can claim a configurable amount once per cooldown period. Tokens spent in the game flow back to the faucet, keeping supply in circulation.
 
-https://book.getfoundry.sh/
+### PlaceGrid
+A 1000×1000 grid where players spend PLACE to rent individual cells. Each cell has an owner and a colour (packed RGB `uint24`). Rentals expire after a configurable duration, at which point the cell becomes available again.
 
-## Usage
+## Development
 
-### Build
+### Prerequisites
+- [Foundry](https://getfoundry.sh/)
+- [just](https://just.systems/)
 
+### Setup
 ```shell
-$ forge build
+cp .env.example .env
 ```
 
-### Test
-
+### Commands
 ```shell
-$ forge test
+just test          # run all tests
+just anvil         # start a local chain
+just deploy-local  # deploy to local Anvil chain
 ```
 
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```

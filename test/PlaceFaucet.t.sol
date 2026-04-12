@@ -2,10 +2,13 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {PlaceToken, INITIAL_SUPPLY} from "../src/PlaceToken.sol";
 import {PlaceFaucet} from "../src/PlaceFaucet.sol";
 
 contract PlaceFaucetTest is Test {
+    using SafeERC20 for IERC20;
     PlaceToken public token;
     PlaceFaucet public faucet;
 
@@ -18,7 +21,7 @@ contract PlaceFaucetTest is Test {
     function setUp() public {
         token = new PlaceToken();
         faucet = new PlaceFaucet(address(token), CLAIM_AMOUNT, COOLDOWN, owner);
-        token.transfer(address(faucet), INITIAL_SUPPLY);
+        IERC20(address(token)).safeTransfer(address(faucet), INITIAL_SUPPLY);
     }
 
     // --- constructor ---
