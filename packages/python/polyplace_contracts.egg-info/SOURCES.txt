@@ -1,8 +1,0 @@
-pyproject.toml
-polyplace_contracts/__init__.py
-polyplace_contracts/deploy.py
-polyplace_contracts.egg-info/PKG-INFO
-polyplace_contracts.egg-info/SOURCES.txt
-polyplace_contracts.egg-info/dependency_links.txt
-polyplace_contracts.egg-info/requires.txt
-polyplace_contracts.egg-info/top_level.txt
