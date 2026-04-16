@@ -25,11 +25,15 @@ contract PlaceGrid is Ownable {
     uint256 public rentPrice;
     uint256 public rentDuration;
 
+    uint256 public constant MAX_BULK = 100;
+
     error OutOfBounds(uint16 x, uint16 y);
     error CellNotAvailable(uint32 cellId, uint256 expiresAt);
     error NotCellRenter(uint32 cellId);
     error InvalidRentPrice();
     error InvalidRentDuration();
+    error TooManyCells(uint256 count);
+    error ArrayLengthMismatch();
 
     event CellRented(uint32 indexed cellId, address indexed renter, uint256 expiresAt);
     event CellColorUpdated(uint32 indexed cellId, address indexed renter, uint24 color);
@@ -67,6 +71,11 @@ contract PlaceGrid is Ownable {
     }
 
     function _rentCell(uint16 x, uint16 y, uint24 color, address renter) internal {
+        _updateCellState(x, y, color, renter);
+        TOKEN.safeTransferFrom(renter, FAUCET, rentPrice);
+    }
+
+    function _updateCellState(uint16 x, uint16 y, uint24 color, address renter) internal {
         if (x >= GRID_SIZE || y >= GRID_SIZE) revert OutOfBounds(x, y);
 
         uint32 cellId = uint32(y) * GRID_SIZE + x;
@@ -82,10 +91,27 @@ contract PlaceGrid is Ownable {
         cell.color     = color;
         cell.expiresAt = expiresAt;
 
-        TOKEN.safeTransferFrom(renter, FAUCET, rentPrice);
-
         emit CellRented(cellId, renter, expiresAt);
         emit CellColorUpdated(cellId, renter, color);
+    }
+
+    /// @notice Rent up to 100 cells in a single transaction. Costs rentPrice per cell.
+    /// @param xs     Array of column indices, 0–999.
+    /// @param ys     Array of row indices, 0–999.
+    /// @param colors Array of packed RGB values.
+    function bulkRentCells(
+        uint16[] calldata xs,
+        uint16[] calldata ys,
+        uint24[] calldata colors
+    ) external {
+        uint256 count = xs.length;
+        if (count > MAX_BULK) revert TooManyCells(count);
+        if (count != ys.length || count != colors.length) revert ArrayLengthMismatch();
+
+        for (uint256 i = 0; i < count; i++) {
+            _updateCellState(xs[i], ys[i], colors[i], msg.sender);
+        }
+        TOKEN.safeTransferFrom(msg.sender, FAUCET, rentPrice * count);
     }
 
     /// @notice Update the colour of a cell you currently rent.
@@ -93,6 +119,28 @@ contract PlaceGrid is Ownable {
     /// @param y     Row, 0–999.
     /// @param color Packed RGB: (r << 16) | (g << 8) | b.
     function setColor(uint16 x, uint16 y, uint24 color) external {
+        _setColor(x, y, color);
+    }
+
+    /// @notice Update the colour of up to 100 cells you currently rent.
+    /// @param xs     Array of column indices, 0–999.
+    /// @param ys     Array of row indices, 0–999.
+    /// @param colors Array of packed RGB values.
+    function bulkSetColors(
+        uint16[] calldata xs,
+        uint16[] calldata ys,
+        uint24[] calldata colors
+    ) external {
+        uint256 count = xs.length;
+        if (count > MAX_BULK) revert TooManyCells(count);
+        if (count != ys.length || count != colors.length) revert ArrayLengthMismatch();
+
+        for (uint256 i = 0; i < count; i++) {
+            _setColor(xs[i], ys[i], colors[i]);
+        }
+    }
+
+    function _setColor(uint16 x, uint16 y, uint24 color) internal {
         if (x >= GRID_SIZE || y >= GRID_SIZE) revert OutOfBounds(x, y);
 
         uint32 cellId = uint32(y) * GRID_SIZE + x;

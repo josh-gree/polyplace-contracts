@@ -400,4 +400,274 @@ contract PlaceGridTest is Test {
         vm.prank(alice);
         grid.setRentDuration(2 days);
     }
+
+    // --- bulkRentCells ---
+
+    function test_BulkRentCells() public {
+        uint16[] memory xs     = new uint16[](3);
+        uint16[] memory ys     = new uint16[](3);
+        uint24[] memory colors = new uint24[](3);
+        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
+        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+        xs[2] = 3; ys[2] = 0; colors[2] = 0x0000FF;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        for (uint256 i = 0; i < 3; i++) {
+            uint32 cellId = uint32(ys[i]) * 1000 + xs[i];
+            (address renter, uint24 color, uint64 expiresAt) = grid.cells(cellId);
+            assertEq(renter, alice);
+            assertEq(color, colors[i]);
+            assertEq(expiresAt, block.timestamp + RENT_DURATION);
+        }
+    }
+
+    function test_BulkRentCellsDeductsTotalFromRenter() public {
+        uint16[] memory xs     = new uint16[](3);
+        uint16[] memory ys     = new uint16[](3);
+        uint24[] memory colors = new uint24[](3);
+        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+
+        uint256 balanceBefore = token.balanceOf(alice);
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        assertEq(token.balanceOf(alice), balanceBefore - RENT_PRICE * 3);
+    }
+
+    function test_BulkRentCellsSendsTotalToFaucet() public {
+        uint16[] memory xs     = new uint16[](3);
+        uint16[] memory ys     = new uint16[](3);
+        uint24[] memory colors = new uint24[](3);
+        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+
+        uint256 balanceBefore = token.balanceOf(address(faucet));
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        assertEq(token.balanceOf(address(faucet)), balanceBefore + RENT_PRICE * 3);
+    }
+
+    function test_BulkRentCellsEmitsEvents() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](2);
+        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
+        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+
+        uint256 expectedExpiry = block.timestamp + RENT_DURATION;
+
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellRented(1, alice, expectedExpiry);
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellColorUpdated(1, alice, 0xFF0000);
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellRented(2, alice, expectedExpiry);
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellColorUpdated(2, alice, 0x00FF00);
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsRevertsIfTooMany() public {
+        uint16[] memory xs     = new uint16[](101);
+        uint16[] memory ys     = new uint16[](101);
+        uint24[] memory colors = new uint24[](101);
+
+        vm.expectRevert(abi.encodeWithSelector(PlaceGrid.TooManyCells.selector, 101));
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsRevertsOnArrayLengthMismatchYs() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](1);
+        uint24[] memory colors = new uint24[](2);
+
+        vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsRevertsOnArrayLengthMismatchColors() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](1);
+
+        vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsRevertsIfAnyCellNotAvailable() public {
+        vm.prank(alice);
+        grid.rentCell(1, 0, 0xFF0000);
+
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](2);
+        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000; // held by alice
+        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint64 expiresAt = uint64(block.timestamp + RENT_DURATION);
+        vm.expectRevert(abi.encodeWithSelector(PlaceGrid.CellNotAvailable.selector, uint32(1), expiresAt));
+        vm.prank(bob);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsRevertsIfInsufficientAllowance() public {
+        vm.prank(alice);
+        token.approve(address(grid), RENT_PRICE * 2 - 1);
+
+        uint16[] memory xs     = new uint16[](3);
+        uint16[] memory ys     = new uint16[](3);
+        uint24[] memory colors = new uint24[](3);
+        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+
+        vm.expectRevert();
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+    }
+
+    function test_BulkRentCellsAcceptsExactlyMaxBulk() public {
+        _giveTokensAndApprove(alice, RENT_PRICE * 100);
+
+        uint16[] memory xs     = new uint16[](100);
+        uint16[] memory ys     = new uint16[](100);
+        uint24[] memory colors = new uint24[](100);
+        for (uint16 i = 0; i < 100; i++) {
+            xs[i] = i;
+        }
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors); // should not revert
+    }
+
+    // --- bulkSetColors ---
+
+    function test_BulkSetColors() public {
+        uint16[] memory xs     = new uint16[](3);
+        uint16[] memory ys     = new uint16[](3);
+        uint24[] memory colors = new uint24[](3);
+        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
+        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+        xs[2] = 3; ys[2] = 0; colors[2] = 0x0000FF;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        colors[0] = 0x111111;
+        colors[1] = 0x222222;
+        colors[2] = 0x333333;
+
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+
+        for (uint256 i = 0; i < 3; i++) {
+            uint32 cellId = uint32(ys[i]) * 1000 + xs[i];
+            (, uint24 color,) = grid.cells(cellId);
+            assertEq(color, colors[i]);
+        }
+    }
+
+    function test_BulkSetColorsDoesNotChargeTokens() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](2);
+        xs[0] = 1; xs[1] = 2;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        uint256 balanceAfterRent = token.balanceOf(alice);
+
+        colors[0] = 0xAAAAAA;
+        colors[1] = 0xBBBBBB;
+
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+
+        assertEq(token.balanceOf(alice), balanceAfterRent);
+    }
+
+    function test_BulkSetColorsEmitsEvents() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](2);
+        xs[0] = 1; xs[1] = 2;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        colors[0] = 0xAAAAAA;
+        colors[1] = 0xBBBBBB;
+
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellColorUpdated(1, alice, 0xAAAAAA);
+        vm.expectEmit(true, true, false, true);
+        emit PlaceGrid.CellColorUpdated(2, alice, 0xBBBBBB);
+
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+    }
+
+    function test_BulkSetColorsRevertsIfTooMany() public {
+        uint16[] memory xs     = new uint16[](101);
+        uint16[] memory ys     = new uint16[](101);
+        uint24[] memory colors = new uint24[](101);
+
+        vm.expectRevert(abi.encodeWithSelector(PlaceGrid.TooManyCells.selector, 101));
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+    }
+
+    function test_BulkSetColorsRevertsOnArrayLengthMismatch() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](1);
+        uint24[] memory colors = new uint24[](2);
+
+        vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+    }
+
+    function test_BulkSetColorsRevertsIfNotRenter() public {
+        uint16[] memory xs     = new uint16[](2);
+        uint16[] memory ys     = new uint16[](2);
+        uint24[] memory colors = new uint24[](2);
+        xs[0] = 1; xs[1] = 2;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        colors[0] = 0xAAAAAA;
+        colors[1] = 0xBBBBBB;
+
+        vm.expectRevert(abi.encodeWithSelector(PlaceGrid.NotCellRenter.selector, uint32(1)));
+        vm.prank(bob);
+        grid.bulkSetColors(xs, ys, colors);
+    }
+
+    function test_BulkSetColorsRevertsIfRentalExpired() public {
+        uint16[] memory xs     = new uint16[](1);
+        uint16[] memory ys     = new uint16[](1);
+        uint24[] memory colors = new uint24[](1);
+        xs[0] = 1;
+
+        vm.prank(alice);
+        grid.bulkRentCells(xs, ys, colors);
+
+        vm.warp(block.timestamp + RENT_DURATION + 1);
+
+        colors[0] = 0xAAAAAA;
+
+        vm.expectRevert(abi.encodeWithSelector(PlaceGrid.NotCellRenter.selector, uint32(1)));
+        vm.prank(alice);
+        grid.bulkSetColors(xs, ys, colors);
+    }
 }
