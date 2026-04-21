@@ -10,7 +10,7 @@ contract SimulateExpiryScript is Script {
 
     function run() external {
         PlaceToken token = PlaceToken(vm.envAddress("TOKEN_ADDRESS"));
-        PlaceGrid grid   = PlaceGrid(vm.envAddress("GRID_ADDRESS"));
+        PlaceGrid grid = PlaceGrid(vm.envAddress("GRID_ADDRESS"));
 
         console.log("Taking Alice's expired cell (5, 10) as Bob...");
 
