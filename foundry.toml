@@ -5,8 +5,15 @@ libs = ["lib"]
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
 ]
+fs_permissions = [{ access = "read-write", path = "./.forge-manifests" }]
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
+amoy      = "${AMOY_RPC_URL}"
+polygon   = "${POLYGON_RPC_URL}"
+
+[etherscan]
+amoy    = { key = "${POLYGONSCAN_API_KEY}", chain = 80002, url = "https://api-amoy.polygonscan.com/api" }
+polygon = { key = "${POLYGONSCAN_API_KEY}", chain = 137, url = "https://api.polygonscan.com/api" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

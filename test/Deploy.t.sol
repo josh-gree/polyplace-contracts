@@ -5,7 +5,13 @@ import {Test} from "forge-std/Test.sol";
 import {PlaceToken, INITIAL_SUPPLY} from "../src/PlaceToken.sol";
 import {PlaceFaucet} from "../src/PlaceFaucet.sol";
 import {PlaceGrid} from "../src/PlaceGrid.sol";
-import {DeployScript, DEPLOY_CLAIM_AMOUNT, DEPLOY_COOLDOWN, DEPLOY_RENT_PRICE, DEPLOY_RENT_DURATION} from "../script/Deploy.s.sol";
+import {
+    DeployScript,
+    DEPLOY_CLAIM_AMOUNT,
+    DEPLOY_COOLDOWN,
+    DEPLOY_RENT_PRICE,
+    DEPLOY_RENT_DURATION
+} from "../script/Deploy.s.sol";
 
 contract DeployTest is Test {
     PlaceToken public token;

@@ -22,9 +22,7 @@ contract PlaceFaucet is Ownable {
     event ClaimAmountUpdated(uint256 oldAmount, uint256 newAmount);
     event CooldownUpdated(uint256 oldCooldown, uint256 newCooldown);
 
-    constructor(address token_, uint256 claimAmount_, uint256 cooldown_, address owner_)
-        Ownable(owner_)
-    {
+    constructor(address token_, uint256 claimAmount_, uint256 cooldown_, address owner_) Ownable(owner_) {
         TOKEN = IERC20(token_);
         claimAmount = claimAmount_;
         cooldown = cooldown_;

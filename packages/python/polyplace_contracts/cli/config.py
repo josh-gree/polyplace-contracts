@@ -21,10 +21,6 @@ def get_rpc_url() -> str:
     return _require("POLYPLACE_RPC_URL")
 
 
-def get_private_key() -> str:
-    return _require("POLYPLACE_PRIVATE_KEY")
-
-
 def get_token_address() -> str:
     return _require("POLYPLACE_TOKEN_ADDRESS")
 

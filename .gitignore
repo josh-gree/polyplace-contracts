@@ -22,3 +22,6 @@ docs/
 __pycache__/
 *.pyc
 *.egg-info/
+
+# Local manifest output used by watcher-side Forge deploy helpers
+.forge-manifests/

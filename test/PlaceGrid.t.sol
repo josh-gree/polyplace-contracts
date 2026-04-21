@@ -17,24 +17,24 @@ contract PlaceGridTest is Test {
 
     address public owner = makeAddr("owner");
     address public alice = makeAddr("alice");
-    address public bob   = makeAddr("bob");
+    address public bob = makeAddr("bob");
 
     uint256 constant PERMIT_PRIVATE_KEY = 0x12345;
     address public permitUser = vm.addr(PERMIT_PRIVATE_KEY);
 
-    uint256 constant CLAIM_AMOUNT  = 100 * 10 ** 18;
-    uint256 constant RENT_PRICE    = 10 * 10 ** 18;
+    uint256 constant CLAIM_AMOUNT = 100 * 10 ** 18;
+    uint256 constant RENT_PRICE = 10 * 10 ** 18;
     uint256 constant RENT_DURATION = 1 days;
 
     function setUp() public {
-        token  = new PlaceToken();
+        token = new PlaceToken();
         faucet = new PlaceFaucet(address(token), CLAIM_AMOUNT, 1 days, owner);
-        grid   = new PlaceGrid(address(token), address(faucet), RENT_PRICE, RENT_DURATION, owner);
+        grid = new PlaceGrid(address(token), address(faucet), RENT_PRICE, RENT_DURATION, owner);
 
         IERC20(address(token)).safeTransfer(address(faucet), INITIAL_SUPPLY);
 
         _giveTokensAndApprove(alice, RENT_PRICE * 10);
-        _giveTokensAndApprove(bob,   RENT_PRICE * 10);
+        _giveTokensAndApprove(bob, RENT_PRICE * 10);
         deal(address(token), permitUser, RENT_PRICE * 10);
     }
 
@@ -125,9 +125,9 @@ contract PlaceGridTest is Test {
 
     function test_RentCellAtCorners() public {
         vm.startPrank(alice);
-        grid.rentCell(0,   0,   0x000001);
-        grid.rentCell(999, 0,   0x000002);
-        grid.rentCell(0,   999, 0x000003);
+        grid.rentCell(0, 0, 0x000001);
+        grid.rentCell(999, 0, 0x000002);
+        grid.rentCell(0, 999, 0x000003);
         grid.rentCell(999, 999, 0x000004);
         vm.stopPrank();
 
@@ -240,22 +240,23 @@ contract PlaceGridTest is Test {
         grid.rentCell(5, 10, 0xFF0000, deadline, v, r, s);
     }
 
-    function _signPermit(
-        uint256 privateKey,
-        address spender,
-        uint256 value,
-        uint256 deadline
-    ) internal view returns (uint8 v, bytes32 r, bytes32 s) {
+    function _signPermit(uint256 privateKey, address spender, uint256 value, uint256 deadline)
+        internal
+        view
+        returns (uint8 v, bytes32 r, bytes32 s)
+    {
         address user = vm.addr(privateKey);
         bytes32 domainSeparator = token.DOMAIN_SEPARATOR();
-        bytes32 permitHash = keccak256(abi.encode(
-            keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
-            user,
-            spender,
-            value,
-            token.nonces(user),
-            deadline
-        ));
+        bytes32 permitHash = keccak256(
+            abi.encode(
+                keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
+                user,
+                spender,
+                value,
+                token.nonces(user),
+                deadline
+            )
+        );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, permitHash));
         (v, r, s) = vm.sign(privateKey, digest);
     }
@@ -404,12 +405,18 @@ contract PlaceGridTest is Test {
     // --- bulkRentCells ---
 
     function test_BulkRentCells() public {
-        uint16[] memory xs     = new uint16[](3);
-        uint16[] memory ys     = new uint16[](3);
+        uint16[] memory xs = new uint16[](3);
+        uint16[] memory ys = new uint16[](3);
         uint24[] memory colors = new uint24[](3);
-        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
-        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
-        xs[2] = 3; ys[2] = 0; colors[2] = 0x0000FF;
+        xs[0] = 1;
+        ys[0] = 0;
+        colors[0] = 0xFF0000;
+        xs[1] = 2;
+        ys[1] = 0;
+        colors[1] = 0x00FF00;
+        xs[2] = 3;
+        ys[2] = 0;
+        colors[2] = 0x0000FF;
 
         vm.prank(alice);
         grid.bulkRentCells(xs, ys, colors);
@@ -424,10 +431,12 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsDeductsTotalFromRenter() public {
-        uint16[] memory xs     = new uint16[](3);
-        uint16[] memory ys     = new uint16[](3);
+        uint16[] memory xs = new uint16[](3);
+        uint16[] memory ys = new uint16[](3);
         uint24[] memory colors = new uint24[](3);
-        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+        xs[0] = 1;
+        xs[1] = 2;
+        xs[2] = 3;
 
         uint256 balanceBefore = token.balanceOf(alice);
 
@@ -438,10 +447,12 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsSendsTotalToFaucet() public {
-        uint16[] memory xs     = new uint16[](3);
-        uint16[] memory ys     = new uint16[](3);
+        uint16[] memory xs = new uint16[](3);
+        uint16[] memory ys = new uint16[](3);
         uint24[] memory colors = new uint24[](3);
-        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+        xs[0] = 1;
+        xs[1] = 2;
+        xs[2] = 3;
 
         uint256 balanceBefore = token.balanceOf(address(faucet));
 
@@ -452,11 +463,15 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsEmitsEvents() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](2);
-        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
-        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+        xs[0] = 1;
+        ys[0] = 0;
+        colors[0] = 0xFF0000;
+        xs[1] = 2;
+        ys[1] = 0;
+        colors[1] = 0x00FF00;
 
         uint256 expectedExpiry = block.timestamp + RENT_DURATION;
 
@@ -474,8 +489,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsRevertsIfTooMany() public {
-        uint16[] memory xs     = new uint16[](101);
-        uint16[] memory ys     = new uint16[](101);
+        uint16[] memory xs = new uint16[](101);
+        uint16[] memory ys = new uint16[](101);
         uint24[] memory colors = new uint24[](101);
 
         vm.expectRevert(abi.encodeWithSelector(PlaceGrid.TooManyCells.selector, 101));
@@ -484,8 +499,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsRevertsOnArrayLengthMismatchYs() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](1);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](1);
         uint24[] memory colors = new uint24[](2);
 
         vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
@@ -494,8 +509,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkRentCellsRevertsOnArrayLengthMismatchColors() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](1);
 
         vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
@@ -507,11 +522,15 @@ contract PlaceGridTest is Test {
         vm.prank(alice);
         grid.rentCell(1, 0, 0xFF0000);
 
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](2);
-        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000; // held by alice
-        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
+        xs[0] = 1; // held by alice
+        ys[0] = 0;
+        colors[0] = 0xFF0000;
+        xs[1] = 2;
+        ys[1] = 0;
+        colors[1] = 0x00FF00;
 
         // forge-lint: disable-next-line(unsafe-typecast)
         uint64 expiresAt = uint64(block.timestamp + RENT_DURATION);
@@ -524,10 +543,12 @@ contract PlaceGridTest is Test {
         vm.prank(alice);
         token.approve(address(grid), RENT_PRICE * 2 - 1);
 
-        uint16[] memory xs     = new uint16[](3);
-        uint16[] memory ys     = new uint16[](3);
+        uint16[] memory xs = new uint16[](3);
+        uint16[] memory ys = new uint16[](3);
         uint24[] memory colors = new uint24[](3);
-        xs[0] = 1; xs[1] = 2; xs[2] = 3;
+        xs[0] = 1;
+        xs[1] = 2;
+        xs[2] = 3;
 
         vm.expectRevert();
         vm.prank(alice);
@@ -537,8 +558,8 @@ contract PlaceGridTest is Test {
     function test_BulkRentCellsAcceptsExactlyMaxBulk() public {
         _giveTokensAndApprove(alice, RENT_PRICE * 100);
 
-        uint16[] memory xs     = new uint16[](100);
-        uint16[] memory ys     = new uint16[](100);
+        uint16[] memory xs = new uint16[](100);
+        uint16[] memory ys = new uint16[](100);
         uint24[] memory colors = new uint24[](100);
         for (uint16 i = 0; i < 100; i++) {
             xs[i] = i;
@@ -551,12 +572,18 @@ contract PlaceGridTest is Test {
     // --- bulkSetColors ---
 
     function test_BulkSetColors() public {
-        uint16[] memory xs     = new uint16[](3);
-        uint16[] memory ys     = new uint16[](3);
+        uint16[] memory xs = new uint16[](3);
+        uint16[] memory ys = new uint16[](3);
         uint24[] memory colors = new uint24[](3);
-        xs[0] = 1; ys[0] = 0; colors[0] = 0xFF0000;
-        xs[1] = 2; ys[1] = 0; colors[1] = 0x00FF00;
-        xs[2] = 3; ys[2] = 0; colors[2] = 0x0000FF;
+        xs[0] = 1;
+        ys[0] = 0;
+        colors[0] = 0xFF0000;
+        xs[1] = 2;
+        ys[1] = 0;
+        colors[1] = 0x00FF00;
+        xs[2] = 3;
+        ys[2] = 0;
+        colors[2] = 0x0000FF;
 
         vm.prank(alice);
         grid.bulkRentCells(xs, ys, colors);
@@ -576,10 +603,11 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsDoesNotChargeTokens() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](2);
-        xs[0] = 1; xs[1] = 2;
+        xs[0] = 1;
+        xs[1] = 2;
 
         vm.prank(alice);
         grid.bulkRentCells(xs, ys, colors);
@@ -596,10 +624,11 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsEmitsEvents() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](2);
-        xs[0] = 1; xs[1] = 2;
+        xs[0] = 1;
+        xs[1] = 2;
 
         vm.prank(alice);
         grid.bulkRentCells(xs, ys, colors);
@@ -617,8 +646,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsRevertsIfTooMany() public {
-        uint16[] memory xs     = new uint16[](101);
-        uint16[] memory ys     = new uint16[](101);
+        uint16[] memory xs = new uint16[](101);
+        uint16[] memory ys = new uint16[](101);
         uint24[] memory colors = new uint24[](101);
 
         vm.expectRevert(abi.encodeWithSelector(PlaceGrid.TooManyCells.selector, 101));
@@ -627,8 +656,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsRevertsOnArrayLengthMismatch() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](1);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](1);
         uint24[] memory colors = new uint24[](2);
 
         vm.expectRevert(PlaceGrid.ArrayLengthMismatch.selector);
@@ -637,10 +666,11 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsRevertsIfNotRenter() public {
-        uint16[] memory xs     = new uint16[](2);
-        uint16[] memory ys     = new uint16[](2);
+        uint16[] memory xs = new uint16[](2);
+        uint16[] memory ys = new uint16[](2);
         uint24[] memory colors = new uint24[](2);
-        xs[0] = 1; xs[1] = 2;
+        xs[0] = 1;
+        xs[1] = 2;
 
         vm.prank(alice);
         grid.bulkRentCells(xs, ys, colors);
@@ -654,8 +684,8 @@ contract PlaceGridTest is Test {
     }
 
     function test_BulkSetColorsRevertsIfRentalExpired() public {
-        uint16[] memory xs     = new uint16[](1);
-        uint16[] memory ys     = new uint16[](1);
+        uint16[] memory xs = new uint16[](1);
+        uint16[] memory ys = new uint16[](1);
         uint24[] memory colors = new uint24[](1);
         xs[0] = 1;
 

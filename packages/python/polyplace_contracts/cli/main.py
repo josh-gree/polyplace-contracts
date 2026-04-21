@@ -6,24 +6,15 @@ There are no defaults: required values raise a clear error when absent.
 
 from __future__ import annotations
 
-import json
 import os
 
 import fire
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
-from ..deploy import (
-    DEPLOY_CLAIM_AMOUNT,
-    DEPLOY_COOLDOWN,
-    DEPLOY_RENT_DURATION,
-    DEPLOY_RENT_PRICE,
-)
-from ..deploy import deploy as _deploy
 from .config import (
     get_faucet_address,
     get_grid_address,
-    get_private_key,
     get_rpc_url,
     get_token_address,
 )
@@ -66,29 +57,6 @@ class Cli:
     @property
     def grid(self) -> Grid:
         return Grid(self._w3(), get_grid_address(), self._account())
-
-    def deploy(
-        self,
-        claim_amount: int = DEPLOY_CLAIM_AMOUNT,
-        cooldown: int = DEPLOY_COOLDOWN,
-        rent_price: int = DEPLOY_RENT_PRICE,
-        rent_duration: int = DEPLOY_RENT_DURATION,
-    ) -> None:
-        """Deploy PlaceToken, PlaceFaucet, PlaceGrid; print {token,faucet,grid} as JSON."""
-        key = get_private_key()
-        result = _deploy(
-            self._w3(),
-            key,
-            claim_amount=claim_amount,
-            cooldown=cooldown,
-            rent_price=rent_price,
-            rent_duration=rent_duration,
-        )
-        print(json.dumps({
-            "token": result.token,
-            "faucet": result.faucet,
-            "grid": result.grid,
-        }))
 
 
 def main() -> None:

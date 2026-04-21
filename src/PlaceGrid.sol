@@ -11,13 +11,13 @@ contract PlaceGrid is Ownable {
 
     uint16 public constant GRID_SIZE = 1000;
 
-    IERC20  public immutable TOKEN;
+    IERC20 public immutable TOKEN;
     address public immutable FAUCET;
 
     struct Cell {
-        address renter;    // 20 bytes
-        uint24  color;     //  3 bytes  ─┐ packed into one
-        uint64  expiresAt; //  8 bytes  ─┘ 32-byte slot
+        address renter; // 20 bytes
+        uint24 color; //  3 bytes  ─┐ packed into one
+        uint64 expiresAt; //  8 bytes  ─┘ 32-byte slot
     }
 
     mapping(uint32 cellId => Cell) public cells;
@@ -40,16 +40,12 @@ contract PlaceGrid is Ownable {
     event RentPriceUpdated(uint256 oldPrice, uint256 newPrice);
     event RentDurationUpdated(uint256 oldDuration, uint256 newDuration);
 
-    constructor(
-        address token_,
-        address faucet_,
-        uint256 rentPrice_,
-        uint256 rentDuration_,
-        address owner_
-    ) Ownable(owner_) {
-        TOKEN        = IERC20(token_);
-        FAUCET       = faucet_;
-        rentPrice    = rentPrice_;
+    constructor(address token_, address faucet_, uint256 rentPrice_, uint256 rentDuration_, address owner_)
+        Ownable(owner_)
+    {
+        TOKEN = IERC20(token_);
+        FAUCET = faucet_;
+        rentPrice = rentPrice_;
         rentDuration = rentDuration_;
     }
 
@@ -62,10 +58,7 @@ contract PlaceGrid is Ownable {
     }
 
     /// @notice Rent a cell using an EIP-2612 permit signature — no prior approve needed.
-    function rentCell(
-        uint16 x, uint16 y, uint24 color,
-        uint256 deadline, uint8 v, bytes32 r, bytes32 s
-    ) external {
+    function rentCell(uint16 x, uint16 y, uint24 color, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         IERC20Permit(address(TOKEN)).permit(msg.sender, address(this), rentPrice, deadline, v, r, s);
         _rentCell(x, y, color, msg.sender);
     }
@@ -87,8 +80,8 @@ contract PlaceGrid is Ownable {
 
         // forge-lint: disable-next-line(unsafe-typecast)
         uint64 expiresAt = uint64(block.timestamp + rentDuration);
-        cell.renter    = renter;
-        cell.color     = color;
+        cell.renter = renter;
+        cell.color = color;
         cell.expiresAt = expiresAt;
 
         emit CellRented(cellId, renter, expiresAt);
@@ -99,11 +92,7 @@ contract PlaceGrid is Ownable {
     /// @param xs     Array of column indices, 0–999.
     /// @param ys     Array of row indices, 0–999.
     /// @param colors Array of packed RGB values.
-    function bulkRentCells(
-        uint16[] calldata xs,
-        uint16[] calldata ys,
-        uint24[] calldata colors
-    ) external {
+    function bulkRentCells(uint16[] calldata xs, uint16[] calldata ys, uint24[] calldata colors) external {
         uint256 count = xs.length;
         if (count > MAX_BULK) revert TooManyCells(count);
         if (count != ys.length || count != colors.length) revert ArrayLengthMismatch();
@@ -126,11 +115,7 @@ contract PlaceGrid is Ownable {
     /// @param xs     Array of column indices, 0–999.
     /// @param ys     Array of row indices, 0–999.
     /// @param colors Array of packed RGB values.
-    function bulkSetColors(
-        uint16[] calldata xs,
-        uint16[] calldata ys,
-        uint24[] calldata colors
-    ) external {
+    function bulkSetColors(uint16[] calldata xs, uint16[] calldata ys, uint24[] calldata colors) external {
         uint256 count = xs.length;
         if (count > MAX_BULK) revert TooManyCells(count);
         if (count != ys.length || count != colors.length) revert ArrayLengthMismatch();

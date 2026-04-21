@@ -22,8 +22,6 @@ PLACE_FAUCET_BYTECODE = _faucet["bytecode"]
 PLACE_GRID_ABI        = _grid["abi"]
 PLACE_GRID_BYTECODE   = _grid["bytecode"]
 
-from .deploy import deploy, load_deployment, Deployment  # noqa: E402
-
 __all__ = [
     "PLACE_TOKEN_ABI",
     "PLACE_TOKEN_BYTECODE",
@@ -31,7 +29,4 @@ __all__ = [
     "PLACE_FAUCET_BYTECODE",
     "PLACE_GRID_ABI",
     "PLACE_GRID_BYTECODE",
-    "deploy",
-    "load_deployment",
-    "Deployment",
 ]
