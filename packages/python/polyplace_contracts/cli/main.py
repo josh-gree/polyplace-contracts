@@ -11,6 +11,7 @@ import os
 import fire
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
+from web3.middleware import ExtraDataToPOAMiddleware
 
 from .config import (
     get_faucet_address,
@@ -35,6 +36,7 @@ class Cli:
             w3 = Web3(Web3.HTTPProvider(rpc_url))
             if not w3.is_connected():
                 raise RuntimeError(f"Cannot connect to RPC at {rpc_url}")
+            w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
             self.__w3 = w3
         return self.__w3
 
