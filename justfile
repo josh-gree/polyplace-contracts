@@ -11,7 +11,7 @@ build-package:
 
 # Run all tests
 test:
-    forge test -v
+    FOUNDRY_OFFLINE=true forge test -v
 
 # Start a local Anvil chain
 anvil:

@@ -6,7 +6,6 @@ remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
 ]
 fs_permissions = [{ access = "read-write", path = "./" }]
-offline = true
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
