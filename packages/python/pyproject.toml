@@ -1,6 +1,6 @@
 [project]
 name = "polyplace-contracts"
-version = "0.2.0"
+version = "0.3.0"
 description = "ABIs, bytecode, and dev CLI for Polyplace smart contracts"
 requires-python = ">=3.10"
 dependencies = [
