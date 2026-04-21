@@ -21,6 +21,10 @@ anvil:
 deploy-local:
     forge script script/Deploy.s.sol --rpc-url localhost --broadcast
 
+# Deploy to a named network (amoy, polygon) with source verification
+deploy network:
+    FOUNDRY_OFFLINE=false forge script script/Deploy.s.sol --rpc-url {{network}} --broadcast --verify
+
 # Simulate usage against local Anvil chain (shows emitted events with -vvvv)
 # Requires: jq
 simulate:
