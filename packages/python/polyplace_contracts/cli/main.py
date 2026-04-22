@@ -7,6 +7,7 @@ There are no defaults: required values raise a clear error when absent.
 from __future__ import annotations
 
 import os
+import sys
 
 import fire
 from eth_account.signers.local import LocalAccount
@@ -20,6 +21,7 @@ from .config import (
     get_token_address,
 )
 from .wrappers import Faucet, Grid, Token
+from polyplace_contracts.errors import PolyplaceContractError
 
 
 class Cli:
@@ -62,7 +64,11 @@ class Cli:
 
 
 def main() -> None:
-    fire.Fire(Cli)
+    try:
+        fire.Fire(Cli)
+    except PolyplaceContractError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

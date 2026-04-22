@@ -7,8 +7,10 @@ from typing import Any
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.contract.contract import ContractFunction
+from web3.exceptions import ContractLogicError
 from web3.types import TxReceipt
 
+from polyplace_contracts.errors import translate_contract_error
 from polyplace_contracts import (
     PLACE_FAUCET_ABI,
     PLACE_GRID_ABI,
@@ -40,20 +42,27 @@ class _ContractWrapper:
         self._contract = w3.eth.contract(address=Web3.to_checksum_address(address), abi=abi)
 
     def _call(self, name: str, *args: Any) -> Any:
-        return self._contract.functions[name](*args).call()
+        try:
+            return self._contract.functions[name](*args).call()
+        except ContractLogicError as exc:
+            raise translate_contract_error(exc) from exc
 
     def _send_fn(self, fn: ContractFunction, **tx_overrides: Any) -> dict[str, Any]:
         if self._account is None:
             raise RuntimeError("Missing required env var: POLYPLACE_PRIVATE_KEY")
-        tx = fn.build_transaction({
-            "from": self._account.address,
-            "nonce": self._w3.eth.get_transaction_count(self._account.address),
-            **tx_overrides,
-        })
-        signed = self._account.sign_transaction(tx)
-        tx_hash = self._w3.eth.send_raw_transaction(signed.raw_transaction)
-        receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
-        return _format_receipt(receipt)
+        try:
+            tx = fn.build_transaction({
+                "from": self._account.address,
+                "nonce": self._w3.eth.get_transaction_count(self._account.address),
+                **tx_overrides,
+            })
+            signed = self._account.sign_transaction(tx)
+            tx_hash = self._w3.eth.send_raw_transaction(signed.raw_transaction)
+            receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
+            return _format_receipt(receipt)
+        except ContractLogicError as exc:
+            raise translate_contract_error(exc) from exc
+
 
     def _send(self, name: str, *args: Any, **tx_overrides: Any) -> dict[str, Any]:
         return self._send_fn(self._contract.functions[name](*args), **tx_overrides)
