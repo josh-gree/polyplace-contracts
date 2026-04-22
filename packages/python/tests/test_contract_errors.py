@@ -36,50 +36,64 @@ class _DummyContract:
         self.functions = _RaisingFunctions(error_data)
 
 
-class ContractErrorTests(unittest.TestCase):
-    def test_decode_out_of_bounds_data(self) -> None:
-        data = _encode_error("OutOfBounds(uint16,uint16)", ["uint16", "uint16"], [1000, 1000])
+def test_decode_out_of_bounds_data() -> None:
+    data = _encode_error("OutOfBounds(uint16,uint16)", ["uint16", "uint16"], [1000, 1000])
 
-        decoded = decode_contract_error_data(data)
+    decoded = decode_contract_error_data(data)
 
-        self.assertIsNotNone(decoded)
-        self.assertEqual(decoded.name, "OutOfBounds")
-        self.assertEqual(dict(decoded.arguments), {"x": 1000, "y": 1000})
+    assert decoded is not None
+    assert decoded.name == "OutOfBounds"
+    assert dict(decoded.arguments) == {"x": 1000, "y": 1000}
 
-    def test_translate_known_custom_error(self) -> None:
-        data = _encode_error("OutOfBounds(uint16,uint16)", ["uint16", "uint16"], [1000, 1000])
-        exc = ContractCustomError(data, data=data)
 
-        translated = translate_contract_error(exc)
+def test_translate_known_custom_error() -> None:
+    data = _encode_error("OutOfBounds(uint16,uint16)", ["uint16", "uint16"], [1000, 1000])
+    exc = ContractCustomError(data, data=data)
 
-        self.assertIsInstance(translated, PolyplaceContractError)
-        self.assertEqual(
-            str(translated),
-            "Cell coordinates out of bounds: x=1000, y=1000. Valid range is 0-999.",
-        )
-        self.assertEqual(translated.error_name, "OutOfBounds")
+    translated = translate_contract_error(exc)
 
-    def test_translate_unknown_custom_error(self) -> None:
-        data = "0xdeadbeef"
-        exc = ContractCustomError(data, data=data)
+    assert isinstance(translated, PolyplaceContractError)
+    assert str(translated) == "Cell coordinates out of bounds: x=1000, y=1000. Valid range is 0-999."
+    assert translated.error_name == "OutOfBounds"
 
-        translated = translate_contract_error(exc)
 
-        self.assertEqual(
-            str(translated),
-            "Contract reverted with an unknown custom error (selector 0xdeadbeef).",
-        )
-        self.assertIsNone(translated.error_name)
+def test_translate_unknown_custom_error() -> None:
+    data = "0xdeadbeef"
+    exc = ContractCustomError(data, data=data)
 
-    def test_wrapper_rewrites_web3_error(self) -> None:
-        data = _encode_error("CooldownNotElapsed(uint256)", ["uint256"], [1_700_000_000])
-        wrapper = object.__new__(_ContractWrapper)
-        wrapper._contract = _DummyContract(data)
+    translated = translate_contract_error(exc)
 
-        with self.assertRaises(PolyplaceContractError) as raised:
-            wrapper._call("claim")
+    assert str(translated) == "Contract reverted with an unknown custom error (selector 0xdeadbeef)."
+    assert translated.error_name is None
 
-        self.assertIn("Faucet cooldown has not elapsed.", str(raised.exception))
+
+def test_wrapper_rewrites_web3_error() -> None:
+    data = _encode_error("CooldownNotElapsed(uint256)", ["uint256"], [1_700_000_000])
+    wrapper = object.__new__(_ContractWrapper)
+    wrapper._contract = _DummyContract(data)
+
+    try:
+        wrapper._call("claim")
+    except PolyplaceContractError as exc:
+        assert "Faucet cooldown has not elapsed." in str(exc)
+    else:
+        raise AssertionError("Expected PolyplaceContractError to be raised")
+
+
+def load_tests(
+    _loader: unittest.TestLoader,
+    _tests: unittest.TestSuite,
+    _pattern: str | None,
+) -> unittest.TestSuite:
+    suite = unittest.TestSuite()
+    for test in (
+        test_decode_out_of_bounds_data,
+        test_translate_known_custom_error,
+        test_translate_unknown_custom_error,
+        test_wrapper_rewrites_web3_error,
+    ):
+        suite.addTest(unittest.FunctionTestCase(test))
+    return suite
 
 
 if __name__ == "__main__":
