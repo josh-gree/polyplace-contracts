@@ -7,7 +7,7 @@ from typing import Any
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.contract.contract import ContractFunction
-from web3.exceptions import ContractLogicError
+from web3.exceptions import ContractCustomError
 from web3.types import TxReceipt
 
 from polyplace_contracts.errors import translate_contract_error
@@ -44,7 +44,7 @@ class _ContractWrapper:
     def _call(self, name: str, *args: Any) -> Any:
         try:
             return self._contract.functions[name](*args).call()
-        except ContractLogicError as exc:
+        except ContractCustomError as exc:
             raise translate_contract_error(exc) from exc
 
     def _send_fn(self, fn: ContractFunction, **tx_overrides: Any) -> dict[str, Any]:
@@ -60,7 +60,7 @@ class _ContractWrapper:
             tx_hash = self._w3.eth.send_raw_transaction(signed.raw_transaction)
             receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
             return _format_receipt(receipt)
-        except ContractLogicError as exc:
+        except ContractCustomError as exc:
             raise translate_contract_error(exc) from exc
 
 

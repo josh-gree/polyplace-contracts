@@ -12,6 +12,7 @@ import sys
 import fire
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
+from web3.exceptions import ContractLogicError
 from web3.middleware import ExtraDataToPOAMiddleware
 
 from .config import (
@@ -67,6 +68,9 @@ def main() -> None:
     try:
         fire.Fire(Cli)
     except PolyplaceContractError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
+    except ContractLogicError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         raise SystemExit(1) from None
 
