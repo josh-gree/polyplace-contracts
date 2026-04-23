@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from .errors import PolyplaceContractError
+
 _artifacts_dir = Path(__file__).parent / "artifacts"
 
 
@@ -29,4 +31,5 @@ __all__ = [
     "PLACE_FAUCET_BYTECODE",
     "PLACE_GRID_ABI",
     "PLACE_GRID_BYTECODE",
+    "PolyplaceContractError",
 ]
