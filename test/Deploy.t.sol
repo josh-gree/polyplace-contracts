@@ -25,6 +25,20 @@ contract DeployTest is Test {
     function setUp() public {
         // forge-lint: disable-next-line(unsafe-cheatcode)
         vm.setEnv("PRIVATE_KEY", vm.toString(TEST_PRIVATE_KEY));
+        // Pin deploy overrides so a developer's .env (loaded by `just test`)
+        // can't leak public-network values into the in-process script run.
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.setEnv("POLYPLACE_DEPLOY_CLAIM_AMOUNT", vm.toString(DEPLOY_CLAIM_AMOUNT));
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.setEnv("POLYPLACE_DEPLOY_COOLDOWN", vm.toString(DEPLOY_COOLDOWN));
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.setEnv("POLYPLACE_DEPLOY_RENT_PRICE", vm.toString(DEPLOY_RENT_PRICE));
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.setEnv("POLYPLACE_DEPLOY_RENT_DURATION", vm.toString(DEPLOY_RENT_DURATION));
+        // Empty path keeps the script on its early-return branch and prevents
+        // overwriting .forge-manifests/<network>.json during tests.
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.setEnv("POLYPLACE_DEPLOYMENT_MANIFEST_PATH", "");
         deployer = vm.addr(TEST_PRIVATE_KEY);
         DeployScript script = new DeployScript();
         (token, faucet, grid) = script.run();
