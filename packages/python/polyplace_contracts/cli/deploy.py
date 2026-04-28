@@ -82,7 +82,18 @@ def main(
     rent_price: int | None,
     rent_duration: int | None,
 ) -> None:
-    """Deploy PlaceToken / PlaceFaucet / PlaceGrid and seed the faucet."""
+    """Deploy PlaceToken / PlaceFaucet / PlaceGrid and seed the faucet.
+
+    By default the shell env block is written to stdout. To load it into
+    your current shell:
+
+    \b
+        eval "$(polyplace-deploy --rpc-url ... --private-key ...)"
+        # or
+        source <(polyplace-deploy --rpc-url ... --private-key ...)
+
+    Pass --env-out PATH to write the block to a file instead.
+    """
     overrides = {
         k: v
         for k, v in {
