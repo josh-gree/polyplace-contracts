@@ -71,9 +71,13 @@ def deploy(
     account: LocalAccount = Account.from_key(deployer_key)
     deployer = account.address
     chain_id = w3.eth.chain_id
-    nonce = w3.eth.get_transaction_count(deployer)
 
-    def _send(tx: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    def _send(builder: Any) -> tuple[str, dict[str, Any]]:
+        tx = builder.build_transaction({
+            "from": deployer,
+            "chainId": chain_id,
+            "nonce": w3.eth.get_transaction_count(deployer),
+        })
         signed = account.sign_transaction(tx)
         tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -82,15 +86,8 @@ def deploy(
         return tx_hash.hex(), receipt
 
     def _deploy(abi: list, bytecode: str, *args: Any) -> tuple[str, str, dict[str, Any]]:
-        nonlocal nonce
         contract = w3.eth.contract(abi=abi, bytecode=bytecode)
-        tx = contract.constructor(*args).build_transaction({
-            "from": deployer,
-            "nonce": nonce,
-            "chainId": chain_id,
-        })
-        nonce += 1
-        tx_hash, receipt = _send(tx)
+        tx_hash, receipt = _send(contract.constructor(*args))
         return receipt.contractAddress, tx_hash, receipt
 
     token_addr, token_tx, _ = _deploy(PLACE_TOKEN_ABI, PLACE_TOKEN_BYTECODE)
@@ -113,13 +110,7 @@ def deploy(
     )
 
     token = w3.eth.contract(address=token_addr, abi=PLACE_TOKEN_ABI)
-    transfer_tx_dict = token.functions.transfer(faucet_addr, INITIAL_SUPPLY).build_transaction({
-        "from": deployer,
-        "nonce": nonce,
-        "chainId": chain_id,
-    })
-    nonce += 1
-    transfer_tx, transfer_receipt = _send(transfer_tx_dict)
+    transfer_tx, transfer_receipt = _send(token.functions.transfer(faucet_addr, INITIAL_SUPPLY))
 
     return Deployment(
         chain_id=chain_id,
