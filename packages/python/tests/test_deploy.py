@@ -2,6 +2,8 @@
 
 import os
 import re
+import shlex
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -14,8 +16,8 @@ from polyplace_contracts import (
     PLACE_GRID_ABI,
     PLACE_TOKEN_ABI,
 )
-from polyplace_contracts.cli.deploy import main as deploy_cli
-from polyplace_contracts.deploy import DeployParams, deploy
+from polyplace_contracts.cli.deploy import _format_env_block, main as deploy_cli
+from polyplace_contracts.deploy import DeployParams, Deployment, deploy
 
 from conftest import AnvilNode
 
@@ -153,3 +155,36 @@ def test_cli_writes_manifest(anvil: AnvilNode, tmp_path: Path) -> None:
     for key in ("token", "faucet", "grid", "deployer", "startBlock", "createdAt", "txHashes"):
         assert key in manifest, f"manifest missing {key}"
     assert set(manifest["txHashes"]) == {"token", "faucet", "grid", "transfer"}
+
+
+def test_env_block_shell_quotes_rpc_url(tmp_path: Path) -> None:
+    rpc_url = "https://rpc.example/?apiKey=abc&project=1"
+    deployment = Deployment(
+        chain_id=31337,
+        deployer="0x" + "11" * 20,
+        token="0x" + "22" * 20,
+        faucet="0x" + "33" * 20,
+        grid="0x" + "44" * 20,
+        start_block=123,
+        deployed_at_block=124,
+        params=DeployParams(),
+        tx_hashes={},
+    )
+    env_path = tmp_path / "deploy.env"
+    env_path.write_text(_format_env_block(deployment, rpc_url))
+
+    result = subprocess.run(
+        [
+            "/bin/sh",
+            "-c",
+            (
+                f". {shlex.quote(str(env_path))}; "
+                "printf '%s\\n%s\\n' \"$POLYPLACE_RPC_URL\" \"$POLYPLACE_START_BLOCK\""
+            ),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.stdout.splitlines() == [rpc_url, str(deployment.start_block)]

@@ -1,6 +1,7 @@
 """`polyplace-deploy` — click-based CLI wrapping `polyplace_contracts.deploy.deploy`."""
 
 import json
+import shlex
 import sys
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -37,11 +38,11 @@ def _build_manifest(d: Deployment, name: str | None, created_at: str) -> dict:
 
 def _format_env_block(d: Deployment, rpc_url: str) -> str:
     return (
-        f"export POLYPLACE_RPC_URL={rpc_url}\n"
-        f"export POLYPLACE_TOKEN_ADDRESS={d.token}\n"
-        f"export POLYPLACE_FAUCET_ADDRESS={d.faucet}\n"
-        f"export POLYPLACE_GRID_ADDRESS={d.grid}\n"
-        f"export POLYPLACE_START_BLOCK={d.start_block}\n"
+        f"export POLYPLACE_RPC_URL={shlex.quote(rpc_url)}\n"
+        f"export POLYPLACE_TOKEN_ADDRESS={shlex.quote(d.token)}\n"
+        f"export POLYPLACE_FAUCET_ADDRESS={shlex.quote(d.faucet)}\n"
+        f"export POLYPLACE_GRID_ADDRESS={shlex.quote(d.grid)}\n"
+        f"export POLYPLACE_START_BLOCK={shlex.quote(str(d.start_block))}\n"
     )
 
 
