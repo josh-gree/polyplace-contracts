@@ -24,7 +24,12 @@ PLACE_FAUCET_BYTECODE = _faucet["bytecode"]
 PLACE_GRID_ABI        = _grid["abi"]
 PLACE_GRID_BYTECODE   = _grid["bytecode"]
 
+# Mirrors the `INITIAL_SUPPLY` constant in `src/PlaceToken.sol`. A
+# Solidity-side change is caught by `tests/test_initial_supply.py`.
+INITIAL_SUPPLY = 1_000_000_000 * 10**18
+
 __all__ = [
+    "INITIAL_SUPPLY",
     "PLACE_TOKEN_ABI",
     "PLACE_TOKEN_BYTECODE",
     "PLACE_FAUCET_ABI",
