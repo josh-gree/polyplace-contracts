@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -82,13 +83,17 @@ def main(
     rent_duration: int | None,
 ) -> None:
     """Deploy PlaceToken / PlaceFaucet / PlaceGrid and seed the faucet."""
-    defaults = DeployParams()
-    params = DeployParams(
-        claim_amount=claim_amount if claim_amount is not None else defaults.claim_amount,
-        cooldown=cooldown if cooldown is not None else defaults.cooldown,
-        rent_price=rent_price if rent_price is not None else defaults.rent_price,
-        rent_duration=rent_duration if rent_duration is not None else defaults.rent_duration,
-    )
+    overrides = {
+        k: v
+        for k, v in {
+            "claim_amount": claim_amount,
+            "cooldown": cooldown,
+            "rent_price": rent_price,
+            "rent_duration": rent_duration,
+        }.items()
+        if v is not None
+    }
+    params = replace(DeployParams(), **overrides)
 
     w3 = Web3(Web3.HTTPProvider(rpc_url))
     if not w3.is_connected():
