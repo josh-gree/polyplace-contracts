@@ -22,7 +22,6 @@ from polyplace_contracts import (
     PLACE_TOKEN_BYTECODE,
 )
 
-
 # Defaults match the constants in `script/Deploy.s.sol`.
 _DEFAULT_CLAIM_AMOUNT = 100 * 10**18
 _DEFAULT_COOLDOWN = 86_400
@@ -71,11 +70,13 @@ def deploy(
     chain_id = w3.eth.chain_id
 
     def _send(builder: Any) -> tuple[str, dict[str, Any]]:
-        tx = builder.build_transaction({
-            "from": deployer,
-            "chainId": chain_id,
-            "nonce": w3.eth.get_transaction_count(deployer),
-        })
+        tx = builder.build_transaction(
+            {
+                "from": deployer,
+                "chainId": chain_id,
+                "nonce": w3.eth.get_transaction_count(deployer),
+            }
+        )
         signed = account.sign_transaction(tx)
         tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = w3.eth.wait_for_transaction_receipt(tx_hash)

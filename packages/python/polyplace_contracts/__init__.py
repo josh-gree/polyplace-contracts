@@ -11,18 +11,18 @@ def _load(name: str) -> dict:
         return json.load(f)
 
 
-_token  = _load("PlaceToken")
+_token = _load("PlaceToken")
 _faucet = _load("PlaceFaucet")
-_grid   = _load("PlaceGrid")
+_grid = _load("PlaceGrid")
 
-PLACE_TOKEN_ABI       = _token["abi"]
-PLACE_TOKEN_BYTECODE  = _token["bytecode"]
+PLACE_TOKEN_ABI = _token["abi"]
+PLACE_TOKEN_BYTECODE = _token["bytecode"]
 
-PLACE_FAUCET_ABI      = _faucet["abi"]
+PLACE_FAUCET_ABI = _faucet["abi"]
 PLACE_FAUCET_BYTECODE = _faucet["bytecode"]
 
-PLACE_GRID_ABI        = _grid["abi"]
-PLACE_GRID_BYTECODE   = _grid["bytecode"]
+PLACE_GRID_ABI = _grid["abi"]
+PLACE_GRID_BYTECODE = _grid["bytecode"]
 
 # Mirrors the `INITIAL_SUPPLY` constant in `src/PlaceToken.sol`. Drift
 # is caught by `tests/test_deploy.py::test_faucet_holds_initial_supply`,

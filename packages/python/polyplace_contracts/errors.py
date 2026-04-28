@@ -87,7 +87,9 @@ def decode_contract_error_data(data: str) -> DecodedContractError | None:
     inputs = item.get("inputs", [])
     try:
         payload = bytes.fromhex(normalized[10:])
-        decoded_values = tuple(_codec().decode([arg["type"] for arg in inputs], payload)) if inputs else ()
+        decoded_values = (
+            tuple(_codec().decode([arg["type"] for arg in inputs], payload)) if inputs else ()
+        )
     except Exception:
         return None
 
@@ -123,7 +125,7 @@ def _clean_contract_logic_message(message: str) -> str:
     ]
     for prefix in prefixes:
         if message.startswith(prefix):
-            return message[len(prefix):].strip() or "Contract reverted."
+            return message[len(prefix) :].strip() or "Contract reverted."
     return message
 
 
@@ -247,9 +249,7 @@ def _format_cell_not_available(args: dict[str, Any]) -> str:
 
 
 def _format_not_cell_renter(args: dict[str, Any]) -> str:
-    return (
-        f"You do not currently rent {_format_cell(args['cellId'])}, or its rental has expired."
-    )
+    return f"You do not currently rent {_format_cell(args['cellId'])}, or its rental has expired."
 
 
 def _format_invalid_rent_price(_: dict[str, Any]) -> str:

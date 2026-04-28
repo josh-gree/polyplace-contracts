@@ -12,7 +12,7 @@ from web3 import Web3
 from web3.middleware import ExtraDataToPOAMiddleware
 
 from polyplace_contracts import INITIAL_SUPPLY
-from polyplace_contracts.deploy import DeployParams, Deployment, deploy
+from polyplace_contracts.deploy import Deployment, DeployParams, deploy
 
 
 def _build_manifest(d: Deployment, name: str | None, created_at: str) -> dict:
@@ -66,7 +66,9 @@ def _format_env_block(d: Deployment, rpc_url: str) -> str:
     help="Write shell env block to this path (use '-' for stdout).",
 )
 @click.option("--name", default=None, help="Optional human label, written into the manifest.")
-@click.option("--claim-amount", type=int, default=None, help="Faucet claim amount (token base units).")
+@click.option(
+    "--claim-amount", type=int, default=None, help="Faucet claim amount (token base units)."
+)
 @click.option("--cooldown", type=int, default=None, help="Faucet cooldown (seconds).")
 @click.option("--rent-price", type=int, default=None, help="Cell rent price (token base units).")
 @click.option("--rent-duration", type=int, default=None, help="Cell rent duration (seconds).")

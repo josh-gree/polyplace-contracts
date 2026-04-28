@@ -10,12 +10,12 @@ from web3.contract.contract import ContractFunction
 from web3.exceptions import ContractCustomError
 from web3.types import TxReceipt
 
-from polyplace_contracts.errors import translate_contract_error
 from polyplace_contracts import (
     PLACE_FAUCET_ABI,
     PLACE_GRID_ABI,
     PLACE_TOKEN_ABI,
 )
+from polyplace_contracts.errors import translate_contract_error
 
 from .color import parse_color
 
@@ -51,18 +51,19 @@ class _ContractWrapper:
         if self._account is None:
             raise RuntimeError("Missing required env var: POLYPLACE_PRIVATE_KEY")
         try:
-            tx = fn.build_transaction({
-                "from": self._account.address,
-                "nonce": self._w3.eth.get_transaction_count(self._account.address),
-                **tx_overrides,
-            })
+            tx = fn.build_transaction(
+                {
+                    "from": self._account.address,
+                    "nonce": self._w3.eth.get_transaction_count(self._account.address),
+                    **tx_overrides,
+                }
+            )
             signed = self._account.sign_transaction(tx)
             tx_hash = self._w3.eth.send_raw_transaction(signed.raw_transaction)
             receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
             return _format_receipt(receipt)
         except ContractCustomError as exc:
             raise translate_contract_error(exc) from exc
-
 
     def _send(self, name: str, *args: Any, **tx_overrides: Any) -> dict[str, Any]:
         return self._send_fn(self._contract.functions[name](*args), **tx_overrides)
@@ -182,14 +183,10 @@ class Grid(_ContractWrapper):
     def set_color(self, x: int, y: int, color: str) -> dict[str, Any]:
         return self._send("setColor", x, y, parse_color(color))
 
-    def bulk_rent_cells(
-        self, xs: list[int], ys: list[int], colors: list[str]
-    ) -> dict[str, Any]:
+    def bulk_rent_cells(self, xs: list[int], ys: list[int], colors: list[str]) -> dict[str, Any]:
         return self._send("bulkRentCells", xs, ys, [parse_color(c) for c in colors])
 
-    def bulk_set_colors(
-        self, xs: list[int], ys: list[int], colors: list[str]
-    ) -> dict[str, Any]:
+    def bulk_set_colors(self, xs: list[int], ys: list[int], colors: list[str]) -> dict[str, Any]:
         return self._send("bulkSetColors", xs, ys, [parse_color(c) for c in colors])
 
     def set_rent_price(self, new_price: int) -> dict[str, Any]:
