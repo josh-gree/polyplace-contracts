@@ -6,6 +6,7 @@ requires-python = ">=3.10"
 dependencies = [
     "web3>=6.0.0",
     "fire>=0.7.1",
+    "click>=8.3.3",
 ]
 
 [project.optional-dependencies]
@@ -15,6 +16,7 @@ dev = [
 
 [project.scripts]
 polyplace-dev = "polyplace_contracts.cli:main"
+polyplace-deploy = "polyplace_contracts.cli.deploy:main"
 
 [build-system]
 requires = ["setuptools>=61"]

@@ -24,7 +24,14 @@ PLACE_FAUCET_BYTECODE = _faucet["bytecode"]
 PLACE_GRID_ABI        = _grid["abi"]
 PLACE_GRID_BYTECODE   = _grid["bytecode"]
 
+# Mirrors the `INITIAL_SUPPLY` constant in `src/PlaceToken.sol`. Drift
+# is caught by `tests/test_deploy.py::test_faucet_holds_initial_supply`,
+# which asserts both `balanceOf(faucet)` and `totalSupply()` against
+# this constant after a real deploy.
+INITIAL_SUPPLY = 1_000_000_000 * 10**18
+
 __all__ = [
+    "INITIAL_SUPPLY",
     "PLACE_TOKEN_ABI",
     "PLACE_TOKEN_BYTECODE",
     "PLACE_FAUCET_ABI",
