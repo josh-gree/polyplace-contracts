@@ -5,8 +5,6 @@ talks to the supplied `Web3` instance and signs with the supplied key. The
 caller is responsible for reading any environment, writing manifests, etc.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 

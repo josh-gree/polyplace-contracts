@@ -1,7 +1,5 @@
 """Shared fixtures: spin up a local Anvil chain for tests that need a real EVM."""
 
-from __future__ import annotations
-
 import socket
 import subprocess
 import time

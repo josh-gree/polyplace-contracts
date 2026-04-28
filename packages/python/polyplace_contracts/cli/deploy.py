@@ -1,7 +1,5 @@
 """`polyplace-deploy` — click-based CLI wrapping `polyplace_contracts.deploy.deploy`."""
 
-from __future__ import annotations
-
 import json
 import sys
 from dataclasses import replace

@@ -1,7 +1,5 @@
 """End-to-end deploy tests against a local Anvil chain."""
 
-from __future__ import annotations
-
 import os
 import re
 from pathlib import Path
