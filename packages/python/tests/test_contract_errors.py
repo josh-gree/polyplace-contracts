@@ -21,10 +21,10 @@ class _RaisingFunctions:
     def __init__(self, error_data: str) -> None:
         self._error_data = error_data
 
-    def __getitem__(self, _name: str) -> "_RaisingFunctions":
+    def __getitem__(self, _name: str) -> _RaisingFunctions:
         return self
 
-    def __call__(self, *_args: object) -> "_RaisingFunctions":
+    def __call__(self, *_args: object) -> _RaisingFunctions:
         return self
 
     def call(self) -> object:
@@ -53,7 +53,9 @@ def test_translate_known_custom_error() -> None:
     translated = translate_contract_error(exc)
 
     assert isinstance(translated, PolyplaceContractError)
-    assert str(translated) == "Cell coordinates out of bounds: x=1000, y=1000. Valid range is 0-999."
+    assert (
+        str(translated) == "Cell coordinates out of bounds: x=1000, y=1000. Valid range is 0-999."
+    )
     assert translated.error_name == "OutOfBounds"
 
 
@@ -63,7 +65,9 @@ def test_translate_unknown_custom_error() -> None:
 
     translated = translate_contract_error(exc)
 
-    assert str(translated) == "Contract reverted with an unknown custom error (selector 0xdeadbeef)."
+    assert (
+        str(translated) == "Contract reverted with an unknown custom error (selector 0xdeadbeef)."
+    )
     assert translated.error_name is None
 
 

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
+from conftest import AnvilNode
 from web3 import Web3
 
 from polyplace_contracts import (
@@ -16,10 +17,9 @@ from polyplace_contracts import (
     PLACE_GRID_ABI,
     PLACE_TOKEN_ABI,
 )
-from polyplace_contracts.cli.deploy import _format_env_block, main as deploy_cli
-from polyplace_contracts.deploy import DeployParams, Deployment, deploy
-
-from conftest import AnvilNode
+from polyplace_contracts.cli.deploy import _format_env_block
+from polyplace_contracts.cli.deploy import main as deploy_cli
+from polyplace_contracts.deploy import Deployment, DeployParams, deploy
 
 
 def _w3(node: AnvilNode) -> Web3:
@@ -179,7 +179,7 @@ def test_env_block_shell_quotes_rpc_url(tmp_path: Path) -> None:
             "-c",
             (
                 f". {shlex.quote(str(env_path))}; "
-                "printf '%s\\n%s\\n' \"$POLYPLACE_RPC_URL\" \"$POLYPLACE_START_BLOCK\""
+                'printf \'%s\\n%s\\n\' "$POLYPLACE_RPC_URL" "$POLYPLACE_START_BLOCK"'
             ),
         ],
         check=True,

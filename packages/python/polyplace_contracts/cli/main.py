@@ -15,6 +15,8 @@ from web3 import Web3
 from web3.exceptions import ContractLogicError
 from web3.middleware import ExtraDataToPOAMiddleware
 
+from polyplace_contracts.errors import PolyplaceContractError
+
 from .config import (
     get_faucet_address,
     get_grid_address,
@@ -22,7 +24,6 @@ from .config import (
     get_token_address,
 )
 from .wrappers import Faucet, Grid, Token
-from polyplace_contracts.errors import PolyplaceContractError
 
 
 class Cli:
