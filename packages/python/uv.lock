@@ -1076,6 +1076,7 @@ version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "eth-abi" },
     { name = "fire" },
     { name = "web3" },
 ]
@@ -1093,6 +1094,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.3.3" },
+    { name = "eth-abi", specifier = ">=5.2.0" },
     { name = "fire", specifier = ">=0.7.1" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "web3", specifier = ">=6.0.0" },
