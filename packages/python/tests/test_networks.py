@@ -49,14 +49,14 @@ def test_resolve_rpc_unknown_raises() -> None:
 def test_resolve_verifier_amoy(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("POLYGONSCAN_API_KEY", "secret-key")
     url, key = resolve_verifier("amoy")
-    assert url == "https://api-amoy.polygonscan.com/api"
+    assert url == "https://api.etherscan.io/v2/api?chainid=80002"
     assert key == "secret-key"
 
 
 def test_resolve_verifier_polygon(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("POLYGONSCAN_API_KEY", "secret-key")
     url, key = resolve_verifier("polygon")
-    assert url == "https://api.polygonscan.com/api"
+    assert url == "https://api.etherscan.io/v2/api?chainid=137"
     assert key == "secret-key"
 
 
