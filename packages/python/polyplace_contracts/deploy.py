@@ -68,13 +68,19 @@ def deploy(
     account: LocalAccount = Account.from_key(deployer_key)
     deployer = account.address
     chain_id = w3.eth.chain_id
+    # Track nonce locally instead of re-querying after each send. Public
+    # RPCs (e.g. Amoy) are load-balanced and eventually consistent — a read
+    # immediately after a mined tx can hit a backend that hasn't seen the
+    # new block yet, returning a stale count and triggering "nonce too low".
+    nonce = w3.eth.get_transaction_count(deployer, "pending")
 
     def _send(builder: Any) -> tuple[str, dict[str, Any]]:
+        nonlocal nonce
         tx = builder.build_transaction(
             {
                 "from": deployer,
                 "chainId": chain_id,
-                "nonce": w3.eth.get_transaction_count(deployer),
+                "nonce": nonce,
             }
         )
         signed = account.sign_transaction(tx)
@@ -82,6 +88,7 @@ def deploy(
         receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         if receipt.status != 1:
             raise RuntimeError(f"Transaction {tx_hash.hex()} reverted")
+        nonce += 1
         return tx_hash.hex(), receipt
 
     def _deploy(abi: list, bytecode: str, *args: Any) -> tuple[str, str, dict[str, Any]]:
