@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 from conftest import AnvilNode
+from eth_account import Account
 from web3 import Web3
 
 from polyplace_contracts import (
@@ -43,6 +44,29 @@ def test_faucet_holds_initial_supply(anvil: AnvilNode) -> None:
     token = w3.eth.contract(address=deployment.token, abi=PLACE_TOKEN_ABI)
     assert token.functions.balanceOf(deployment.faucet).call() == INITIAL_SUPPLY
     assert token.functions.totalSupply().call() == INITIAL_SUPPLY
+
+
+def test_wiring_ownership_and_defaults(anvil: AnvilNode) -> None:
+    w3 = _w3(anvil)
+    deployer = Account.from_key(anvil.deployer_key).address
+    defaults = DeployParams()
+
+    deployment = deploy(w3, anvil.deployer_key)
+
+    faucet = w3.eth.contract(address=deployment.faucet, abi=PLACE_FAUCET_ABI)
+    grid = w3.eth.contract(address=deployment.grid, abi=PLACE_GRID_ABI)
+
+    assert faucet.functions.TOKEN().call() == deployment.token
+    assert grid.functions.TOKEN().call() == deployment.token
+    assert grid.functions.FAUCET().call() == deployment.faucet
+
+    assert faucet.functions.owner().call() == deployer
+    assert grid.functions.owner().call() == deployer
+
+    assert faucet.functions.claimAmount().call() == defaults.claim_amount
+    assert faucet.functions.cooldown().call() == defaults.cooldown
+    assert grid.functions.rentPrice().call() == defaults.rent_price
+    assert grid.functions.rentDuration().call() == defaults.rent_duration
 
 
 def test_params_passed_through(anvil: AnvilNode) -> None:
