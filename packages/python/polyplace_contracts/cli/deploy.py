@@ -13,6 +13,7 @@ from web3.middleware import ExtraDataToPOAMiddleware
 
 from polyplace_contracts import INITIAL_SUPPLY
 from polyplace_contracts.deploy import Deployment, DeployParams, deploy
+from polyplace_contracts.networks import get_network, resolve_rpc
 
 
 def _build_manifest(d: Deployment, name: str | None, created_at: str) -> dict:
@@ -47,7 +48,16 @@ def _format_env_block(d: Deployment, rpc_url: str) -> str:
 
 
 @click.command()
-@click.option("--rpc-url", required=True, help="JSON-RPC endpoint to deploy against.")
+@click.option(
+    "--network",
+    default=None,
+    help="Named network from polyplace_contracts.networks (e.g. localhost, amoy, polygon).",
+)
+@click.option(
+    "--rpc-url",
+    default=None,
+    help="JSON-RPC endpoint to deploy against. Mutually exclusive with --network.",
+)
 @click.option(
     "--private-key",
     required=True,
@@ -73,7 +83,8 @@ def _format_env_block(d: Deployment, rpc_url: str) -> str:
 @click.option("--rent-price", type=int, default=None, help="Cell rent price (token base units).")
 @click.option("--rent-duration", type=int, default=None, help="Cell rent duration (seconds).")
 def main(
-    rpc_url: str,
+    network: str | None,
+    rpc_url: str | None,
     private_key: str,
     manifest_out: Path | None,
     env_out: str | None,
@@ -85,16 +96,30 @@ def main(
 ) -> None:
     """Deploy PlaceToken / PlaceFaucet / PlaceGrid and seed the faucet.
 
+    Pass either --network <name> (resolved via polyplace_contracts.networks)
+    or --rpc-url <url> for an ad-hoc endpoint.
+
     By default the shell env block is written to stdout. To load it into
     your current shell:
 
     \b
-        eval "$(polyplace-deploy --rpc-url ... --private-key ...)"
+        eval "$(polyplace-deploy --network localhost --private-key ...)"
         # or
-        source <(polyplace-deploy --rpc-url ... --private-key ...)
+        source <(polyplace-deploy --network localhost --private-key ...)
 
     Pass --env-out PATH to write the block to a file instead.
     """
+    if (network is None) == (rpc_url is None):
+        raise click.UsageError("Pass exactly one of --network or --rpc-url.")
+
+    expected_chain_id: int | None = None
+    if network is not None:
+        try:
+            rpc_url = resolve_rpc(network)
+        except (ValueError, RuntimeError) as exc:
+            raise click.UsageError(str(exc)) from exc
+        expected_chain_id = get_network(network).chain_id
+
     overrides = {
         k: v
         for k, v in {
@@ -111,6 +136,14 @@ def main(
     if not w3.is_connected():
         raise click.ClickException(f"Cannot connect to RPC at {rpc_url}")
     w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+
+    if expected_chain_id is not None:
+        actual = w3.eth.chain_id
+        if actual != expected_chain_id:
+            raise click.ClickException(
+                f"network {network!r} expects chain id {expected_chain_id}, "
+                f"but RPC reports {actual}"
+            )
 
     deployment = deploy(w3, private_key, params)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
