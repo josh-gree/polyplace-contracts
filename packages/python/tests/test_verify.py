@@ -20,7 +20,7 @@ TOKEN = "0x" + "22" * 20
 FAUCET = "0x" + "33" * 20
 GRID = "0x" + "44" * 20
 
-AMOY_VERIFIER_URL = "https://api-amoy.polygonscan.com/api"
+AMOY_VERIFIER_URL = "https://api.etherscan.io/v2/api?chainid=80002"
 API_KEY = "test-polygonscan-key"
 
 
